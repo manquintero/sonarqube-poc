@@ -15,45 +15,53 @@ def setup_logger():
     logger.setLevel(logging.INFO)
 
     # Add log file
-    logger.addHandler(RotatingFileHandler('master.log', maxBytes=2000000, backupCount=10))
+    logger.addHandler(RotatingFileHandler(
+        'master.log', maxBytes=2000000, backupCount=10))
 
     # Add stdout
     stream_handler = logging.StreamHandler(sys.stdout)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - [%(levelname)s] - %(message)s')
+    formatter = logging.Formatter(
+        '%(asctime)s - %(name)s - [%(levelname)s] - %(message)s')
     stream_handler.setFormatter(formatter)
     logger.addHandler(stream_handler)
-
-def validate(args):
-    """ Validate Inputs """
-    if not getattr(args, 'project'):
-        raise argparse.ArgumentError(None, 'Project is mandatory')
 
 
 def main():
     """ Entry Point """
-    parser = argparse.ArgumentParser(description='Process Sonar Project information')
+    parser = argparse.ArgumentParser(
+        description='Process Sonar Project information')
+    parser.add_argument('--platform', dest='platform', action='store',
+                        nargs='?', default='sonarqube', choices=['sonarqube'])
     parser.add_argument('--project', dest='project', action='store', nargs=1)
+    parser.add_argument('--organization', dest='organization',
+                        action='store', nargs=1)
     args = parser.parse_args()
-
-    # Validate Inputs
-    validate(args)
 
     # Start Loggers
     setup_logger()
 
-    project = args.project[-1]
-    with SonarHandler(project) as sonar:
-
+    with SonarHandler(args) as sonar:
         # Search for project
-        if sonar.autheticated:
-            projects = sonar.search_project(project)
+        if not sonar.autheticated:
+            logging.warning('Authentication is not set')
+            return
 
-            # Filter for exact match
-            match = list(filter(lambda p: p.key == project, projects))
-            if not match:
-                logging.info(f'Project {project} not found, creating')
-                sonar_project = sonar.create_project(project)
-                print(sonar_project)
+        if not sonar.project:
+            logging.warning('The poject has not been set')
+            return
+
+        project = sonar.search_project()
+        if project:
+            logging.info("Project '%s' Already Exists", sonar.project)
+            return
+
+        logging.info("Project %s not found, creating", sonar.project)
+        sonar_project = sonar.create_project()
+        if not sonar_project:
+            logging.error("Project not generated")
+
+        logging.info("Project %s has been generated", sonar.project)
+        print(sonar_project)
 
 
 if __name__ == "__main__":

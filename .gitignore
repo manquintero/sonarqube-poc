@@ -132,3 +132,9 @@ dmypy.json
 
 # Pycharm
 .idea/
+
+# VSCode
+.vscode/
+
+# Sonnar
+.scannerwork/

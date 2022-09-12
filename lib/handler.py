@@ -1,33 +1,35 @@
+from asyncio.log import logger
 import json
 import logging
 import os
-from sonarqube import SonarQubeClient
 
-from lib.response import from_json
+from lib.utils import SONARCLOUD_URL, SonarPlatform, from_json
 
 
 class SonarHandler:
+    """ Connector with Sonar """
 
-    def __init__(self, project=None) -> None:
-        self.host = "localhost"
-        self.port = 8080
-        self.project = project
+    def __init__(self, attrs) -> None:
+        # Unpack configuration
+        self._platform = getattr(attrs, 'platform', SonarPlatform.SONARQUBE)
+        self.host = getattr(attrs, 'host', None)
+        self.port = getattr(attrs, 'port', None)
 
-        self.url = "http://%s:%d" % (self.host, self.port)
-        self.url_api = self.url + '/api'
+        project = getattr(attrs, 'project', None)
+        self.project = project.pop() if isinstance(project, list) else project
 
         # Init the logger
         self.logger = logging.getLogger(__name__)
 
-        # Properties
-        sonar_token = os.getenv('SONARQU_TOKEN')
-        self.client = SonarQubeClient(self.url, token=sonar_token)
+        # Generate the client connetion
+        self.client = self.__get_client()
 
         # Store auth values
-        self._autheticated = self.validate()
+        self._autheticated = self.__validate()
 
     @property
     def autheticated(self):
+        """ Getter """
         return self._autheticated.valid
 
     @autheticated.setter
@@ -35,8 +37,41 @@ class SonarHandler:
         if not self._autheticated and value:
             self._autheticated = value
 
+    @property
+    def platform(self):
+        """ Getter """
+        return self._platform
+
+    @platform.setter
+    def platform(self, value):
+        if not self._platform and value:
+            self._platform = value
+
+    @property
+    def url(self):
+        """ Getter """
+        return f"http://{self.host}:{self.port}"
+
+    # Privates
+    def __get_client(self):
+        module = __import__('sonarqube')
+
+        kargs = dict()
+        kargs['token'] = os.getenv('SONAR_TOKEN')
+        if self.platform == SonarPlatform.SONARQUBE.value:
+            client = 'SonarQubeClient'
+            kargs['sonarqube_url'] = self.url if (
+                self.host and self.port)else "http://localhost:9000"
+        elif self.platform == SonarPlatform.SONARCLOUD.value:
+            client = 'SonarCloudClient'
+            kargs['sonarcloud_url'] = SONARCLOUD_URL
+        else:
+            raise TypeError(f'Platform not supported {self.platform}')
+
+        return getattr(module, client)(**kargs)
+
     # Authentication endpoints
-    def validate(self):
+    def __validate(self):
         """ Check credentials. """
         func = 'auth.check_credentials'
         result = self.call(func)
@@ -44,26 +79,48 @@ class SonarHandler:
             return json.loads(result, object_hook=from_json)
 
     # Project endpoint
-    def search_project(self, projects=None):
+    def search_project(self):
+        """ Retrieves a single match for the exact match against project key """
+        return_value = None
         func = 'projects.search_projects'
-        kargs = dict(projects=projects)
-        result = self.call(func, **kargs)
-        if result:
-            result = json.dumps(list(result))
-            return json.loads(result, object_hook=from_json)
 
-    def create_project(self, project):
+        if not self.project:
+            logging.error('No project has been set')
+            return return_value
+
+        kargs = dict(projects=self.project)
+        projects = self.call(func, **kargs)
+        if projects:
+            projects = json.dumps(list(projects))
+            projects = json.loads(projects, object_hook=from_json)
+
+            match = list(filter(lambda p: p.key == self.project, projects))
+            if match:
+                return_value = match.pop()
+
+        return return_value
+
+    def create_project(self):
         """ Generate a new project """
+        return_value = None
         func = 'projects.create_project'
+
+        if not self.project:
+            logger.warning('The Project is not defined')
+            return return_value
+
         kargs = dict(
-            project=project,
-            name=project,
+            project=self.project,
+            name=self.project,
             visibility="private"
         )
+
         result = self.call(func, **kargs)
         if result:
-            result = json.dumps(list(result))
-            return json.loads(result, object_hook=from_json)
+            result = json.dumps(result)
+            return_value = json.loads(result, object_hook=from_json)
+
+        return return_value
 
     def call(self, func, **kargs):
         """ Wrapper functions for client """
@@ -75,7 +132,7 @@ class SonarHandler:
                 base = getattr(base, attr)
                 caller = base if callable(base) else None
             except AttributeError:
-                logging.warning("Method '{}' not found".format(attr))
+                logging.warning("Method '%s' not found", attr)
 
         if caller:
             logging.info(caller.__name__)
@@ -95,3 +152,4 @@ class SonarHandler:
 
     def __exit__(self, type, value, traceback):
         self.logout()
+        return (type, value, traceback)
