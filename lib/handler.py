@@ -28,23 +28,45 @@ class SonarHandler:
 
     @property
     def autheticated(self):
-        return self._autheticated
+        return self._autheticated.valid
 
     @autheticated.setter
     def autheticated(self, value):
         if not self._autheticated and value:
             self._autheticated = value
 
-    # Authentitation endpoints
+    # Authentication endpoints
     def validate(self):
         """ Check credentials. """
-        func = 'auth.check_credentialss'
+        func = 'auth.check_credentials'
         result = self.call(func)
         if result:
             return json.loads(result, object_hook=from_json)
 
-    def call(self, func, *args):
-        ''' Wrapper functions for client '''
+    # Project endpoint
+    def search_project(self, projects=None):
+        func = 'projects.search_projects'
+        kargs = dict(projects=projects)
+        result = self.call(func, **kargs)
+        if result:
+            result = json.dumps(list(result))
+            return json.loads(result, object_hook=from_json)
+
+    def create_project(self, project):
+        """ Generate a new project """
+        func = 'projects.create_project'
+        kargs = dict(
+            project=project,
+            name=project,
+            visibility="private"
+        )
+        result = self.call(func, **kargs)
+        if result:
+            result = json.dumps(list(result))
+            return json.loads(result, object_hook=from_json)
+
+    def call(self, func, **kargs):
+        """ Wrapper functions for client """
         response = None
 
         base = self.client
@@ -57,7 +79,7 @@ class SonarHandler:
 
         if caller:
             logging.info(caller.__name__)
-            response = caller(*args)
+            response = caller(**kargs)
 
         return response
 
