@@ -1,0 +1,11 @@
+name: 'Sonar Project'
+description: 'Greet someone and record the time'
+inputs:
+  platform:
+    description: 'Sonar Platform'
+    default: 'sonarcloud'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  args:
+    [ "--platform", "${{ inputs.platform }}"]

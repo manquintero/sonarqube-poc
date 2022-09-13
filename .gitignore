@@ -135,6 +135,7 @@ dmypy.json
 
 # VSCode
 .vscode/
+.devcontainer/
 
 # Sonnar
 .scannerwork/
