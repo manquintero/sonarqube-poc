@@ -21,8 +21,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Readme Generator
-        uses: bitflight-devops/github-action-readme-generator@main
+      - name: Readme Generator Check
+        run:
+          npm i github-action-readme-generator
+          npx github-action-readme-generator
 
       - name: Check for Updates
         run:
