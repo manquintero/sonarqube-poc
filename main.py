@@ -7,7 +7,7 @@ from logging.handlers import RotatingFileHandler
 import sys
 from argparse import ArgumentError, Namespace
 
-from lib.handler import SonarHandler
+from lib.handler import SonarHandler, SonarException
 from lib.utils import SonarPlatform
 
 
@@ -73,12 +73,13 @@ def main():
             return
 
         logging.info("Project %s not found, creating", sonar.project)
-        sonar_project = sonar.create_project()
-        if not sonar_project:
-            logging.error("Project not generated")
 
-        logging.info("Project %s has been generated", sonar.project)
-        print(sonar_project)
+        try:
+            sonar_project = sonar.create_project()
+            logging.info("Project %s has been generated", sonar.project)
+            print(sonar_project)
+        except SonarException:
+            logging.error("Project not generated")
 
 
 if __name__ == "__main__":

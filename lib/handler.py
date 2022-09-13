@@ -128,7 +128,8 @@ class SonarHandler:
 
             # If organization is defined, it needs to be prefixed to the project name
             pattern = re.compile(f'^{self._organization}_{self.project}$')
-            kargs['project'] =  self.project if pattern.match(self.project) else  f'{self.organization}_{self.project}'
+            kargs['project'] = self.project if pattern.match(
+                self.project) else f'{self.organization}_{self.project}'
         else:
             kargs['project'] = self.project
 
@@ -167,7 +168,14 @@ class SonarHandler:
                 result = json.dumps(result)
                 return_value = json.loads(result, object_hook=from_json)
         except ValidationError as validation_error:
-            raise validation_error
+            msg = str(validation_error)
+            if re.search('Could not create Project, key already exists:', msg):
+                logging.warning(msg)
+                exception = validation_error
+
+            # Raise Unhandled exceptions
+            if exception:
+                raise SonarException from validation_error
 
         return return_value
 
@@ -202,3 +210,7 @@ class SonarHandler:
     def __exit__(self, type, value, traceback):
         self.logout()
         return (type, value, traceback)
+
+
+class SonarException(ValidationError):
+    """ Sonar Error """
