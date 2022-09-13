@@ -12,7 +12,7 @@ inputs:
     default: "public"
   project:
     description: Key of the project
-    default: "$${{ github.event.repository.name }}"
+    default: "${{ github.event.repository.name }}"
 runs:
   using: "docker"
   image: "Dockerfile"
@@ -23,3 +23,5 @@ runs:
       "--visibility", "${{ inputs.visibility }}",
       "--project", "${{ inputs.project }}",
     ]
+  env:
+    SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
