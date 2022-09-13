@@ -1,5 +1,3 @@
-# This is a basic workflow to help you get started with Actions
-
 name: CI
 
 # Controls when the workflow will run
@@ -30,3 +28,8 @@ jobs:
         uses: ./
         with:
           platform: sonarcloud
+          organization: "${{ github.repository_owner }}"
+          project: "${{ github.event.repository.name }}"
+          visibility: "public"
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
