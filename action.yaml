@@ -16,6 +16,8 @@ inputs:
 runs:
   using: "docker"
   image: "Dockerfile"
+  env:
+    SONAR_TOKEN: "${{ secrets.SONAR_TOKEN }}"
   args:
     [
       "--platform", "${{ inputs.platform }}",
@@ -23,5 +25,3 @@ runs:
       "--visibility", "${{ inputs.visibility }}",
       "--project", "${{ inputs.project }}",
     ]
-  env:
-    SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
