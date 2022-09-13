@@ -16,6 +16,7 @@ jobs:
 
   action:
     if: ${{ github.event_name == 'pull_request' }}
+    name: Lint Action Readme
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
