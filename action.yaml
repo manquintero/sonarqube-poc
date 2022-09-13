@@ -1,16 +1,25 @@
-name: 'Sonar Project'
-description: 'Greet someone and record the time'
+name: "Sonar Project"
+description: "Greet someone and record the time"
 inputs:
   platform:
-    description: 'Sonar Platform'
-    default: 'sonarcloud'
+    description: "Sonar Platform"
+    default: "sonarcloud"
   organization:
-    description: 'Sonar Organization'
-    default: '${{ github.repository_owner }}'
+    description: "Sonar Organization"
+    default: "${{ github.repository_owner }}"
+  visibility:
+    description: Whether the created project should be visible to everyone, or only specific user/groups.
+    default: "public"
+  project:
+    description: Key of the project
+    default: "$${{ github.event.repository.name }}"
 runs:
-  using: 'docker'
-  image: 'Dockerfile'
-  args: [
-    "--platform", "${{ inputs.platform }}",
-    "--organization", "${{ inputs.organization }}",
-  ]
+  using: "docker"
+  image: "Dockerfile"
+  args:
+    [
+      "--platform", "${{ inputs.platform }}",
+      "--organization", "${{ inputs.organization }}",
+      "--visibility", "${{ inputs.visibility }}",
+      "--project", "${{ inputs.project }}",
+    ]
