@@ -4,8 +4,13 @@ inputs:
   platform:
     description: 'Sonar Platform'
     default: 'sonarcloud'
+  organization:
+    description: 'Sonar Organization'
+    default: '${{ github.repository_owner }}'
 runs:
   using: 'docker'
   image: 'Dockerfile'
-  args:
-    [ "--platform", "${{ inputs.platform }}"]
+  args: [
+    "--platform", "${{ inputs.platform }}",
+    "--organization", "${{ inputs.organization }}",
+  ]
