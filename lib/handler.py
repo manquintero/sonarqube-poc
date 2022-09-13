@@ -1,7 +1,10 @@
-from asyncio.log import logger
+""" Sonar Handler """
 import json
 import logging
 import os
+import re
+from sonarqube import SonarCloudClient
+from sonarqube.utils.exceptions import ValidationError
 
 from lib.utils import SONARCLOUD_URL, SonarPlatform, from_json
 
@@ -15,8 +18,17 @@ class SonarHandler:
         self.host = getattr(attrs, 'host', None)
         self.port = getattr(attrs, 'port', None)
 
+        organization = getattr(attrs, 'organization', None)
+        self._organization = organization.pop() if isinstance(
+            organization, list) else organization
+
+        # Normalize the project Key
         project = getattr(attrs, 'project', None)
-        self.project = project.pop() if isinstance(project, list) else project
+        if isinstance(project, list):
+            project = project.pop()
+        self.project = project
+
+        self._visibility = getattr(attrs, 'visibility', 'private')
 
         # Init the logger
         self.logger = logging.getLogger(__name__)
@@ -44,6 +56,7 @@ class SonarHandler:
 
     @platform.setter
     def platform(self, value):
+        """ Setter """
         if not self._platform and value:
             self._platform = value
 
@@ -52,16 +65,33 @@ class SonarHandler:
         """ Getter """
         return f"http://{self.host}:{self.port}"
 
+    @property
+    def organization(self):
+        """ Getter """
+        return self._organization
+
+    @organization.setter
+    def organization(self, value):
+        """ Setter """
+        if not self._organization and value:
+            self._organization = value
+
+    @property
+    def visibility(self):
+        """ Getter """
+        return self._visibility
+
     # Privates
     def __get_client(self):
         module = __import__('sonarqube')
 
         kargs = dict()
         kargs['token'] = os.getenv('SONAR_TOKEN')
+
         if self.platform == SonarPlatform.SONARQUBE.value:
             client = 'SonarQubeClient'
             kargs['sonarqube_url'] = self.url if (
-                self.host and self.port)else "http://localhost:9000"
+                self.host and self.port) else "http://localhost:9000"
         elif self.platform == SonarPlatform.SONARCLOUD.value:
             client = 'SonarCloudClient'
             kargs['sonarcloud_url'] = SONARCLOUD_URL
@@ -73,10 +103,13 @@ class SonarHandler:
     # Authentication endpoints
     def __validate(self):
         """ Check credentials. """
+        return_value = None
         func = 'auth.check_credentials'
         result = self.call(func)
         if result:
-            return json.loads(result, object_hook=from_json)
+            return_value = json.loads(result, object_hook=from_json)
+
+        return return_value
 
     # Project endpoint
     def search_project(self):
@@ -88,13 +121,23 @@ class SonarHandler:
             logging.error('No project has been set')
             return return_value
 
-        kargs = dict(projects=self.project)
+        kargs = dict()
+
+        if isinstance(self.client, SonarCloudClient):
+            kargs['organization'] = self.organization
+
+            # If organization is defined, it needs to be prefixed to the project name
+            pattern = re.compile(f'^{self._organization}_{self.project}$')
+            kargs['project'] =  self.project if pattern.match(self.project) else  f'{self.organization}_{self.project}'
+        else:
+            kargs['project'] = self.project
+
         projects = self.call(func, **kargs)
         if projects:
             projects = json.dumps(list(projects))
             projects = json.loads(projects, object_hook=from_json)
 
-            match = list(filter(lambda p: p.key == self.project, projects))
+            match = list(filter(lambda p: p.key == kargs['project'], projects))
             if match:
                 return_value = match.pop()
 
@@ -106,19 +149,25 @@ class SonarHandler:
         func = 'projects.create_project'
 
         if not self.project:
-            logger.warning('The Project is not defined')
+            self.logger.warning('The Project is not defined')
             return return_value
 
         kargs = dict(
             project=self.project,
             name=self.project,
-            visibility="private"
+            visibility=self.visibility
         )
 
-        result = self.call(func, **kargs)
-        if result:
-            result = json.dumps(result)
-            return_value = json.loads(result, object_hook=from_json)
+        if isinstance(self.client, SonarCloudClient):
+            kargs['organization'] = self.organization
+
+        try:
+            result = self.call(func, **kargs)
+            if result:
+                result = json.dumps(result)
+                return_value = json.loads(result, object_hook=from_json)
+        except ValidationError as validation_error:
+            raise validation_error
 
         return return_value
 
@@ -135,7 +184,7 @@ class SonarHandler:
                 logging.warning("Method '%s' not found", attr)
 
         if caller:
-            logging.info(caller.__name__)
+            logging.info("%s(%s)", caller.__name__, kargs)
             response = caller(**kargs)
 
         return response
