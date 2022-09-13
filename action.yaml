@@ -9,7 +9,7 @@ inputs:
     default: "${{ github.repository_owner }}"
   visibility:
     description: Whether the created project should be visible to everyone, or only specific user/groups.
-    default: "public"
+    default: "private"
   project:
     description: Key of the project
     default: "${{ github.event.repository.name }}"

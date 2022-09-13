@@ -30,6 +30,6 @@ jobs:
           platform: sonarcloud
           organization: "${{ github.repository_owner }}"
           project: "${{ github.event.repository.name }}"
-          visibility: "public"
+          visibility: private
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
