@@ -13,14 +13,30 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+
+  action:
+    if: ${{ github.event_name == 'pull_request' }}
+    name: Lint Action Readme
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Readme Generator Check
+        run: |
+          npm i github-action-readme-generator
+          npx github-action-readme-generator
+
+      - name: Check for Updates
+        run:
+          git diff --exit-code
+
+  sonar:
+    runs-on: ubuntu-latest
+    name: Generate Sonar
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout
         uses: actions/checkout@v3
 

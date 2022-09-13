@@ -1,5 +1,6 @@
-name: "Sonar Project"
-description: "Greet someone and record the time"
+name: Sonar Project Generator
+description: >
+  Generate or Configure a SonarQuebe or SonarCloud project
 inputs:
   platform:
     description: "Sonar Platform"
