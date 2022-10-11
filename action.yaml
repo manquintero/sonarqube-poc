@@ -8,12 +8,6 @@ inputs:
   organization:
     description: "Sonar Organization"
     default: "${{ github.repository_owner }}"
-  visibility:
-    description: Whether the created project should be visible to everyone, or only specific user/groups.
-    default: "private"
-  project:
-    description: Key of the project
-    default: "${{ github.event.repository.name }}"
 runs:
   using: "docker"
   image: "Dockerfile"
@@ -21,6 +15,4 @@ runs:
     [
       "--platform", "${{ inputs.platform }}",
       "--organization", "${{ inputs.organization }}",
-      "--visibility", "${{ inputs.visibility }}",
-      "--project", "${{ inputs.project }}",
     ]
