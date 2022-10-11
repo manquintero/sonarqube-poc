@@ -26,7 +26,9 @@ BRANCH_PAYLOAD = {
     'analysisDate': '2022-10-10T22:31:50+0200',
     'commit': {
         'sha': 'c658d235b686d8e5b67d7991006ff8f874cb8e7e',
-        'author': {'name': 'Name', 'login': 'name@github', 'avatar': 'fb1a30fc483b5001f294c686f70d460c'},
+        'author': {
+            'name': 'Name', 'login': 'name@github', 'avatar': 'fb1a30fc483b5001f294c686f70d460c'
+        },
         'date': '2022-10-10T20:51:08+0200',
         'message': 'build: Add Pylint pre-commit'
     }

@@ -1,3 +1,4 @@
+""" Defines the Business Rules for the Projects """
 from lib.handler import SonarHandler
 from lib.response import Component
 

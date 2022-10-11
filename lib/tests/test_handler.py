@@ -1,4 +1,4 @@
-import copy
+""" Test Cases for handler.py """
 import json
 import unittest
 from argparse import Namespace
@@ -25,7 +25,7 @@ class SonarHandlerTestCase(unittest.TestCase):
     def test_default_constructor(self):
         """ Default constructor needs attributes """
         with self.assertRaises(TypeError):
-            SonarHandler()
+            SonarHandler(None)
 
     def test_invalid_client(self):
         """ Verify an invalid sonar client """
@@ -34,6 +34,7 @@ class SonarHandlerTestCase(unittest.TestCase):
 
     @patch.object(SonarQubeAuth, 'check_credentials')
     def test_sonar_client_authenticated(self, check_credentials_mock):
+        """ Verify a client is Authenticated via a Valid Payload hit """
         check_credentials_mock.return_value = json.dumps(VALID_PAYLOAD)
 
         test_cases = {
@@ -51,6 +52,7 @@ class SonarHandlerTestCase(unittest.TestCase):
     @patch.object(SonarQubeAuth, 'check_credentials')
     @patch.object(SonarQubeAuth, 'logout_user')
     def test_context_manger(self, check_credentials_mock, logout_user_mock):
+        """ Verify the logout call in a Context Manager exit """
         check_credentials_mock.return_value = json.dumps(VALID_PAYLOAD)
         logout_user_mock.return_value = ''
         attrs = Namespace(platform='sonarcloud')
@@ -96,7 +98,8 @@ class SonarHandlerTestCase(unittest.TestCase):
         """ Test List Projects call """
         items = 2
         check_credentials_mock.return_value = json.dumps(VALID_PAYLOAD)
-        search_projects_mock.return_value = (COMPONENT_PAYLOAD for _ in range(items))   # Generator of Projects
+        # Generator of Projects
+        search_projects_mock.return_value = (COMPONENT_PAYLOAD for _ in range(items))
 
         handler = SonarHandler(self.cloud_settings)
         projects = handler.list_projects()

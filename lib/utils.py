@@ -21,5 +21,3 @@ def from_json(json_obj):
     if 'key' in json_obj and 'name' in json_obj and 'qualifier' in json_obj:
         return Component(json_obj)
     return json_obj
-
-

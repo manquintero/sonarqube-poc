@@ -56,8 +56,9 @@ class SonarHandler:
     def __get_client(self):
         module = __import__('sonarqube')
 
-        kargs = dict()
-        kargs['token'] = os.getenv('SONAR_TOKEN')
+        kargs = {
+            'token': os.getenv('SONAR_TOKEN')
+        }
 
         if self.platform == SonarPlatform.SONARQUBE.value:
             client = 'SonarQubeClient'
@@ -88,7 +89,7 @@ class SonarHandler:
         return_value = None
         func = 'projects.search_projects'
 
-        kargs = dict()
+        kargs = {}
         if isinstance(self.client, SonarCloudClient):
             if not self.organization:
                 msg = "Organization cannot be empty in Sonar Cloud"
@@ -118,7 +119,7 @@ class SonarHandler:
         return return_value
 
     def rename_main_branch(self, project_key, main_branch):
-        """ """
+        """ Rename the main branch of a project """
         func = 'project_branches.rename_project_branch'
         kargs = dict(project=project_key, name=main_branch)
         response = self.call(func, **kargs)
@@ -154,9 +155,9 @@ class SonarHandler:
             self.logger.warning('The Client is not authenticated')
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, typ, val, tra):
         self.logout()
-        return (type, value, traceback)
+        return typ, val, tra
 
 
 class SonarException(ValidationError):

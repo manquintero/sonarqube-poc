@@ -43,7 +43,8 @@ def validate(args: Namespace):
 def main():
     """ Entry Point """
     parser = argparse.ArgumentParser(description='Process Sonar Project information')
-    parser.add_argument('--platform', dest='platform', action='store', default='sonarcloud', choices=SONAR_PLATFORMS)
+    parser.add_argument('--platform', dest='platform', action='store', default='sonarcloud',
+                        choices=SONAR_PLATFORMS)
     parser.add_argument('--organization', dest='organization', action='store', nargs=1)
     args = parser.parse_args()
 

@@ -1,4 +1,6 @@
 """ Sonar Responses """
+# pylint: disable=too-few-public-methods
+# pylint: disable=invalid-name
 
 
 class SonarObject:
@@ -14,7 +16,7 @@ class SonarObject:
 
 
 class Validate(SonarObject):
-    """ Holder class for a Valid Authenticad Connection """
+    """ Holder class for a Valid Authenticated Connection """
     def __init__(self, attrs):
         self.valid = attrs['valid']
 
@@ -22,7 +24,6 @@ class Validate(SonarObject):
 class Component(SonarObject):
     """ Holder Class for Project Search Results"""
     def __init__(self, attrs):
-        # Primitives
         self.organization = None
         self.key = None
         self.name = None

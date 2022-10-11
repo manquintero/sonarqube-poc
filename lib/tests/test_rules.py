@@ -9,6 +9,7 @@ from lib.tests.test_utils import COMPONENT_PAYLOAD, BRANCH_PAYLOAD
 
 
 class ProjectBranchCompliantTestCase(unittest.TestCase):
+    """ Test Cases for ProjectBranchCompliant"""
 
     def setUp(self) -> None:
         self.project = Component(COMPONENT_PAYLOAD)
@@ -17,11 +18,10 @@ class ProjectBranchCompliantTestCase(unittest.TestCase):
             Branch(BRANCH_PAYLOAD)
         ]
 
-    """ Test Cases for ProjectBranchCompliant """
     def test_empty_constructor(self):
         """ Verify empty constructor fails """
         with self.assertRaises(TypeError):
-            ProjectBranchCompliant()
+            ProjectBranchCompliant(None, None)
 
     def test_project_branch_compliant(self):
         """ Verify a valid project """
@@ -29,6 +29,7 @@ class ProjectBranchCompliantTestCase(unittest.TestCase):
         self.assertTrue(branch.is_branch_compliant)
 
     def test_set_main_branch(self):
+        """ Verify rename_main_branch is called """
         branch = ProjectBranchCompliant(self.project, self.handler)
         branch.set_main_branch()
         self.assertTrue(self.handler.rename_main_branch.called)
