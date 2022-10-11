@@ -78,6 +78,8 @@ def main():
                 deviated.set_main_branch()
             except SonarException:
                 logging.error('Unable to set main branch for %s', project_key)
+    # Happy ending
+    logging.info("Finish")
 
 
 if __name__ == "__main__":

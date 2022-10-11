@@ -124,6 +124,19 @@ class SonarHandlerTestCase(unittest.TestCase):
         self.assertTrue(all(isinstance(b, Branch) for b in branches))
 
     @patch.object(SonarQubeAuth, 'check_credentials')
+    @patch.object(SonarQubeProjectBranches, 'delete_project_branch')
+    def test_delete_branch(self, search_project_branches_mock, check_credentials_mock):
+        """ Test calls to delete_branch """
+        check_credentials_mock.return_value = json.dumps(VALID_PAYLOAD)
+        search_project_branches_mock.return_value = b''
+
+        handler = SonarHandler(self.cloud_settings)
+        response = handler.delete_branch(self.project_key, DEFAULT_BRANCH)
+
+        # Verify an empty response is generated
+        self.assertEqual(b'', response)
+
+    @patch.object(SonarQubeAuth, 'check_credentials')
     @patch.object(SonarQubeProjectBranches, 'rename_project_branch')
     def test_rename_main_branch(self, search_project_branches_mock, check_credentials_mock):
         """ Test calls to rename_main_branch """

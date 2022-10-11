@@ -35,6 +35,18 @@ class ProjectBranchCompliantTestCase(unittest.TestCase):
         branch.set_main_branch()
         self.assertTrue(self.handler.rename_main_branch.called)
 
+    def test_set_main_branch_already_exists(self):
+        """ Verify a non-main branch is delete before renaming is called """
+        self.handler.list_project_branches.return_value = [
+            Branch(dict(name='master', isMain=True)),
+            Branch(dict(name='main', isMain=False))
+        ]
+        branch = ProjectBranchCompliant(self.project, self.handler)
+        branch.set_main_branch()
+
+        self.assertTrue(self.handler.delete_branch.called)
+        self.assertTrue(self.handler.rename_main_branch.called)
+
 
 if __name__ == '__main__':  # pragma: no cover
     unittest.main()

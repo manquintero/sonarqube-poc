@@ -118,6 +118,14 @@ class SonarHandler:
 
         return return_value
 
+    def delete_branch(self, project_key, main_branch):
+        """ Delete a non-main branch of a project """
+        func = 'project_branches.delete_project_branch'
+        kargs = dict(project=project_key, branch=main_branch)
+        response = self.call(func, **kargs)
+
+        return response
+
     def rename_main_branch(self, project_key, main_branch):
         """ Rename the main branch of a project """
         func = 'project_branches.rename_project_branch'

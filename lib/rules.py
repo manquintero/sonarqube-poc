@@ -1,4 +1,6 @@
 """ Defines the Business Rules for the Projects """
+import logging
+
 from lib.handler import SonarHandler
 from lib.response import Component
 
@@ -33,4 +35,9 @@ class ProjectBranchCompliant:
 
     def set_main_branch(self):
         """ Sets the default branch """
-        self.handler.rename_main_branch(self.project.key, self.default_branch)
+        # Verify it there's a conflict with an existing main branch
+        project_key = self.project.key
+        if any(b.name == DEFAULT_BRANCH and not b.isMain for b in self.branches):
+            logging.info("Deleting already existing main branch")
+            self.handler.delete_branch(project_key, self.default_branch)
+        self.handler.rename_main_branch(project_key, self.default_branch)
