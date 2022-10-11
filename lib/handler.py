@@ -2,7 +2,8 @@
 import json
 import logging
 import os
-import re
+from argparse import Namespace
+
 from sonarqube import SonarCloudClient
 from sonarqube.utils.exceptions import ValidationError
 
@@ -12,7 +13,7 @@ from lib.utils import SONARCLOUD_URL, SonarPlatform, from_json
 class SonarHandler:
     """ Connector with Sonar """
 
-    def __init__(self, attrs) -> None:
+    def __init__(self, attrs: Namespace) -> None:
         # Unpack configuration
         self._platform = getattr(attrs, 'platform', SonarPlatform.SONARQUBE)
         self.host = getattr(attrs, 'host', None)
@@ -22,43 +23,24 @@ class SonarHandler:
         self._organization = organization.pop() if isinstance(
             organization, list) else organization
 
-        # Normalize the project Key
-        project = getattr(attrs, 'project', None)
-        if isinstance(project, list):
-            project = project.pop()
-        self.project = project
-
-        self._visibility = getattr(attrs, 'visibility', 'private')
-
         # Init the logger
         self.logger = logging.getLogger(__name__)
 
-        # Generate the client connetion
+        # Generate the client connection
         self.client = self.__get_client()
 
         # Store auth values
-        self._autheticated = self.__validate()
+        self._authenticated = self.__validate()
 
     @property
-    def autheticated(self):
+    def authenticated(self):
         """ Getter """
-        return self._autheticated.valid
-
-    @autheticated.setter
-    def autheticated(self, value):
-        if not self._autheticated and value:
-            self._autheticated = value
+        return self._authenticated.valid
 
     @property
     def platform(self):
         """ Getter """
         return self._platform
-
-    @platform.setter
-    def platform(self, value):
-        """ Setter """
-        if not self._platform and value:
-            self._platform = value
 
     @property
     def url(self):
@@ -69,17 +51,6 @@ class SonarHandler:
     def organization(self):
         """ Getter """
         return self._organization
-
-    @organization.setter
-    def organization(self, value):
-        """ Setter """
-        if not self._organization and value:
-            self._organization = value
-
-    @property
-    def visibility(self):
-        """ Getter """
-        return self._visibility
 
     # Privates
     def __get_client(self):
@@ -112,75 +83,51 @@ class SonarHandler:
         return return_value
 
     # Project endpoint
-    def search_project(self):
-        """ Retrieves a single match for the exact match against project key """
+    def list_projects(self):
+        """ Retrieves all projects within an organization """
         return_value = None
         func = 'projects.search_projects'
 
-        if not self.project:
-            logging.error('No project has been set')
-            return return_value
-
         kargs = dict()
-
         if isinstance(self.client, SonarCloudClient):
+            if not self.organization:
+                msg = "Organization cannot be empty in Sonar Cloud"
+                logging.error(msg)
+                raise SonarException(msg)
             kargs['organization'] = self.organization
-
-            # If organization is defined, it needs to be prefixed to the project name
-            pattern = re.compile(f'^{self._organization}_{self.project}$')
-            kargs['project'] = self.project if pattern.match(
-                self.project) else f'{self.organization}_{self.project}'
-        else:
-            kargs['project'] = self.project
 
         projects = self.call(func, **kargs)
         if projects:
             projects = json.dumps(list(projects))
-            projects = json.loads(projects, object_hook=from_json)
-
-            match = list(filter(lambda p: p.key == kargs['project'], projects))
-            if match:
-                return_value = match.pop()
+            return_value = json.loads(projects, object_hook=from_json)
 
         return return_value
 
-    def create_project(self):
-        """ Generate a new project """
+    def list_project_branches(self, project_key):
+        """ List the branches of a project. """
         return_value = None
-        func = 'projects.create_project'
+        func = 'project_branches.search_project_branches'
 
-        if not self.project:
-            self.logger.warning('The Project is not defined')
-            return return_value
+        kargs = dict(project=project_key)
 
-        kargs = dict(
-            project=self.project,
-            name=self.project,
-            visibility=self.visibility
-        )
-
-        if isinstance(self.client, SonarCloudClient):
-            kargs['organization'] = self.organization
-
-        try:
-            result = self.call(func, **kargs)
-            if result:
-                result = json.dumps(result)
-                return_value = json.loads(result, object_hook=from_json)
-        except ValidationError as validation_error:
-            msg = str(validation_error)
-            if re.search('Could not create Project, key already exists:', msg):
-                logging.warning(msg)
-                exception = validation_error
-
-            # Raise Unhandled exceptions
-            if exception:
-                raise SonarException from validation_error
+        branches = self.call(func, **kargs)
+        if branches:
+            branches = json.dumps(branches['branches'])
+            return_value = json.loads(branches, object_hook=from_json)
 
         return return_value
+
+    def rename_main_branch(self, project_key, main_branch):
+        """ """
+        func = 'project_branches.rename_project_branch'
+        kargs = dict(project=project_key, name=main_branch)
+        response = self.call(func, **kargs)
+
+        return response
 
     def call(self, func, **kargs):
         """ Wrapper functions for client """
+        caller = None
         response = None
 
         base = self.client
@@ -192,7 +139,7 @@ class SonarHandler:
                 logging.warning("Method '%s' not found", attr)
 
         if caller:
-            logging.info("%s(%s)", caller.__name__, kargs)
+            logging.info("%s(%s)", func, kargs)
             response = caller(**kargs)
 
         return response
@@ -203,7 +150,7 @@ class SonarHandler:
         return self.call(func)
 
     def __enter__(self):
-        if not self._autheticated:
+        if not self._authenticated:
             self.logger.warning('The Client is not authenticated')
         return self
 

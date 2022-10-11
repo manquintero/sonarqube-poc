@@ -8,12 +8,7 @@ class SonarObject:
         description += f'=={self.__class__}==\n'
         for key in vars(self):
             value = getattr(self, key)
-            if not isinstance(value, list):
-                description += f'{key}: {value}\n'
-            else:
-                description += f'==={key}===\n'
-                for _ in value:
-                    description += value + '\n'
+            description += f'{key}: {value}\n'
 
         return description
 
@@ -27,12 +22,30 @@ class Validate(SonarObject):
 class Component(SonarObject):
     """ Holder Class for Project Search Results"""
     def __init__(self, attrs):
+        # Primitives
+        self.organization = None
+        self.key = None
+        self.name = None
+        self.qualifier = None
+        self.visibility = None
+        self.lastAnalysisDate = None
+        self.revision = None
+
         for key in attrs:
             setattr(self, key, attrs[key])
 
 
-class Project(SonarObject):
-    """ Holder Class for Project Generation Results """
+class Branch(SonarObject):
+    """ Holder Class for Branch in a Project """
+
     def __init__(self, attrs):
+        self.name = None
+        self.isMain = None
+        self.type = None
+        self.mergeBranch = None
+        self.status = None
+        self.analysisDate = None
+        self.commit = None
+
         for key in attrs:
             setattr(self, key, attrs[key])
