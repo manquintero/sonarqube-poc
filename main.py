@@ -20,8 +20,7 @@ def setup_logger():
     logger.setLevel(logging.INFO)
 
     # Add log file
-    logger.addHandler(RotatingFileHandler(
-        'master.log', maxBytes=2000000, backupCount=10))
+    logger.addHandler(RotatingFileHandler('main.log', maxBytes=2000000, backupCount=10))
 
     # Add stdout
     stream_handler = logging.StreamHandler(sys.stdout)
