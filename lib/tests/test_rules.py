@@ -21,7 +21,8 @@ class ProjectBranchCompliantTestCase(unittest.TestCase):
     def test_empty_constructor(self):
         """ Verify empty constructor fails """
         with self.assertRaises(TypeError):
-            ProjectBranchCompliant(None, None)
+            # pylint: disable=no-value-for-parameter
+            ProjectBranchCompliant()
 
     def test_project_branch_compliant(self):
         """ Verify a valid project """
