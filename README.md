@@ -25,7 +25,7 @@ To authenticate in Sonar, an environmental variable `SONAR_TOKEN` needs to be av
 <!-- start usage -->
 
 ```yaml
-- uses: discoveryinc-dtc/sonarqube-poc@v0.0.0
+- uses: manquintero/sonarqube-poc@v0.0.0
   with:
     # Sonar Platform
     # Default: sonarcloud
@@ -34,15 +34,6 @@ To authenticate in Sonar, an environmental variable `SONAR_TOKEN` needs to be av
     # Sonar Organization
     # Default: ${{ github.repository_owner }}
     organization: ""
-
-    # Whether the created project should be visible to everyone, or only specific
-    # user/groups.
-    # Default: private
-    visibility: ""
-
-    # Key of the project
-    # Default: ${{ github.event.repository.name }}
-    project: ""
 ```
 
 <!-- end usage -->
@@ -51,12 +42,10 @@ To authenticate in Sonar, an environmental variable `SONAR_TOKEN` needs to be av
 
 <!-- start inputs -->
 
-| **Input**          | **Description**                                                                          | **Default**                           | **Required** |
-| ------------------ | ---------------------------------------------------------------------------------------- | ------------------------------------- | ------------ |
-| **`platform`**     | Sonar Platform                                                                           | `sonarcloud`                          | **false**    |
-| **`organization`** | Sonar Organization                                                                       | `${{ github.repository_owner }}`      | **false**    |
-| **`visibility`**   | Whether the created project should be visible to everyone, or only specific user/groups. | `private`                             | **false**    |
-| **`project`**      | Key of the project                                                                       | `${{ github.event.repository.name }}` | **false**    |
+| **Input**          | **Description**    | **Default**                      | **Required** |
+| ------------------ | ------------------ | -------------------------------- | ------------ |
+| **`platform`**     | Sonar Platform     | `sonarcloud`                     | **false**    |
+| **`organization`** | Sonar Organization | `${{ github.repository_owner }}` | **false**    |
 
 <!-- end inputs -->
 

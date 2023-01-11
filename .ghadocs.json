@@ -10,7 +10,7 @@
     "prefix": "v",
     "branch": "main"
   },
-  "owner": "discoveryinc-dtc",
+  "owner": "manquintero",
   "repo": "sonarqube-poc",
   "title_prefix": "GitHub Action: ",
   "pretty": "true"
